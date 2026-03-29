@@ -4,7 +4,6 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-
 def _safe_mode(series: pd.Series, default: str = "unknown") -> str:
     s = series.dropna()
     if s.empty:
@@ -353,4 +352,107 @@ def assign_enriched_customer_segment(customer_360: pd.DataFrame) -> pd.DataFrame
         return "Occasional"
 
     df["customer_segment_enriched"] = df.apply(classify, axis=1)
+    return df
+
+
+def assign_primary_segment(customer_360: pd.DataFrame) -> pd.DataFrame:
+    """
+    Segmentación primaria estable para producción.
+    No mezcla fricción dentro del segmento principal.
+    """
+    df = customer_360.copy()
+
+    p80_value = df["value_score"].quantile(0.80)
+    p60_value = df["value_score"].quantile(0.60)
+    p75_inactivity = df["inactivity_risk_score"].quantile(0.75)
+
+    def classify(row: pd.Series) -> str:
+        recency = row["recency_days"]
+        frequency = row["frequency"]
+        value_score = row["value_score"]
+        inactivity = row["inactivity_risk_score"]
+
+        if frequency == 1 and recency <= 90:
+            return "NEW_CUSTOMER"
+
+        if value_score >= p80_value and frequency >= 2 and recency <= 120:
+            return "VIP"
+
+        if frequency >= 2 and recency <= 150 and value_score >= p60_value:
+            return "CORE_LOYAL"
+
+        if recency <= 120 and frequency == 1 and value_score >= 0.40:
+            return "ACTIVE_GROWTH"
+
+        if inactivity >= p75_inactivity and value_score >= p60_value:
+            return "HIGH_VALUE_RISK"
+
+        if inactivity >= p75_inactivity:
+            return "CHURN_RISK"
+
+        return "OCCASIONAL"
+
+    df["customer_segment_primary"] = df.apply(classify, axis=1)
+
+    segment_code_map = {
+        "CORE_LOYAL": "S1",
+        "ACTIVE_GROWTH": "S2",
+        "OCCASIONAL": "S3",
+        "CHURN_RISK": "S4",
+        "HIGH_VALUE_RISK": "S5",
+        "VIP": "S6",
+        "NEW_CUSTOMER": "S7",
+    }
+
+    segment_alias_map = {
+        "CORE_LOYAL": "Cliente fiel",
+        "ACTIVE_GROWTH": "Cliente en crecimiento",
+        "OCCASIONAL": "Comprador esporádico",
+        "CHURN_RISK": "En riesgo de abandono",
+        "HIGH_VALUE_RISK": "Alto valor en enfriamiento",
+        "VIP": "Cliente premium",
+        "NEW_CUSTOMER": "Cliente nuevo",
+    }
+
+    df["segment_code"] = df["customer_segment_primary"].map(segment_code_map)
+    df["segment_alias"] = df["customer_segment_primary"].map(segment_alias_map)
+
+    return df
+
+
+def assign_customer_flags(customer_360: pd.DataFrame) -> pd.DataFrame:
+    """
+    Flags secundarios no mutuamente excluyentes.
+    """
+    df = customer_360.copy()
+
+    p80_value = df["value_score"].quantile(0.80)
+    p75_friction = df["friction_score"].quantile(0.75)
+    p75_inactivity = df["inactivity_risk_score"].quantile(0.75)
+
+    df["flag_high_value"] = df["value_score"] >= p80_value
+    df["flag_friction_risk"] = df["friction_score"] >= p75_friction
+    df["flag_churn_signal"] = df["inactivity_risk_score"] >= p75_inactivity
+
+    def build_flags(row: pd.Series) -> list[str]:
+        flags = []
+        if row["flag_high_value"]:
+            flags.append("HIGH_VALUE")
+        if row["flag_friction_risk"]:
+            flags.append("FRICTION_RISK")
+        if row["flag_churn_signal"]:
+            flags.append("CHURN_SIGNAL")
+        return flags
+
+    df["customer_flags"] = df.apply(build_flags, axis=1)
+    df["customer_flags_text"] = df["customer_flags"].apply(
+        lambda xs: ", ".join(xs) if xs else "NONE"
+    )
+
+    return df
+
+def assign_production_customer_segmentation(customer_360: pd.DataFrame) -> pd.DataFrame:
+    df = customer_360.copy()
+    df = assign_primary_segment(df)
+    df = assign_customer_flags(df)
     return df
