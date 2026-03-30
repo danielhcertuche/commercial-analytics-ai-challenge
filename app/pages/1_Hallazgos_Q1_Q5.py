@@ -9,30 +9,40 @@ from matplotlib.patches import Rectangle
 import streamlit as st
 
 
-# =========================================================
-# 1. Project root and imports (VERSIÓN FLEXIBLE)
-# =========================================================
-def find_project_root(current_path: Path) -> Path:
-    """
-    Busca la raíz del proyecto buscando 'src' o 'requirements.txt'.
-    Esto soluciona el error de 'No fue posible ubicar la raíz' en Streamlit Cloud.
-    """
-    for candidate in [current_path] + list(current_path.parents):
-        # Buscamos marcadores de la raíz del repositorio
-        if (candidate / "src").exists() or (candidate / "requirements.txt").exists():
-            return candidate
-    # Fallback: El directorio de trabajo actual suele ser la raíz en el servidor
-    return Path.cwd()
 
-try:
-    # Intentamos localizar la raíz de forma dinámica
-    PROJECT_ROOT = find_project_root(Path(__file__).resolve())
-except Exception:
-    PROJECT_ROOT = Path.cwd()
+# =========================================================
+# 1. Configuración de Rutas (VERSIÓN ROBUSTA PARA CLOUD)
+# =========================================================
 
-# Inyectar la raíz en el path de Python para que funcionen los imports de /src
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
+def setup_project_paths():
+    """
+    Configura PROJECT_ROOT y añade 'src' al sys.path de forma segura.
+    """
+    # En Streamlit Cloud, el CWD suele ser /mount/src/commercial-analytics-ai-challenge
+    cwd = Path.cwd()
+    
+    # Intentamos localizar la raíz buscando un marcador (requirements.txt o src)
+    # Buscamos desde el archivo actual hacia arriba, o usamos el CWD como base
+    current_file = Path(__file__).resolve()
+    
+    root = None
+    for candidate in [current_file] + list(current_file.parents):
+        if (candidate / "requirements.txt").exists() or (candidate / "src").exists():
+            root = candidate
+            break
+            
+    # Si no se encuentra mediante padres, usamos el CWD
+    if root is None:
+        root = cwd
+
+    # Añadir la raíz al path para permitir imports de la carpeta 'src'
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    
+    return root
+
+# Ejecutamos la configuración
+PROJECT_ROOT = setup_project_paths()
 
 
 # =========================================================
