@@ -14,28 +14,25 @@ import streamlit as st
 # =========================================================
 def find_project_root(current_path: Path) -> Path:
     """
-    Busca la raíz del proyecto de forma flexible para evitar RuntimeError.
+    Busca la raíz del proyecto buscando 'src' o 'requirements.txt'.
+    Esto soluciona el error de 'No fue posible ubicar la raíz' en Streamlit Cloud.
     """
-    root_markers = ["src", "requirements.txt", ".gitignore", "app"]
     for candidate in [current_path] + list(current_path.parents):
-        if any((candidate / marker).exists() for marker in root_markers):
+        # Buscamos marcadores de la raíz del repositorio
+        if (candidate / "src").exists() or (candidate / "requirements.txt").exists():
             return candidate
+    # Fallback: El directorio de trabajo actual suele ser la raíz en el servidor
     return Path.cwd()
 
-PROJECT_ROOT = find_project_root(Path(__file__).resolve())
+try:
+    # Intentamos localizar la raíz de forma dinámica
+    PROJECT_ROOT = find_project_root(Path(__file__).resolve())
+except Exception:
+    PROJECT_ROOT = Path.cwd()
+
+# Inyectar la raíz en el path de Python para que funcionen los imports de /src
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
-
-# Intentar importar módulos locales con manejo de errores
-try:
-    from src.data.loaders import load_all_datasets
-    from src.analysis.site_selection import (
-        build_city_sales_summary,
-        add_city_priority_score,
-    )
-except ImportError:
-    st.error("No se pudieron cargar los módulos de 'src'. Verifica la estructura de carpetas.")
-
 
 
 # =========================================================
