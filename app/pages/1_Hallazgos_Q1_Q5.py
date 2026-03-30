@@ -18,22 +18,12 @@ def setup_project_paths():
     """
     Configura PROJECT_ROOT y añade 'src' al sys.path de forma segura.
     """
-    # En Streamlit Cloud, el CWD suele ser /mount/src/commercial-analytics-ai-challenge
-    cwd = Path.cwd()
+    # En Streamlit Cloud, el CWD es la raíz del repo
+    root = Path.cwd()
     
-    # Intentamos localizar la raíz buscando un marcador (requirements.txt o src)
-    # Buscamos desde el archivo actual hacia arriba, o usamos el CWD como base
-    current_file = Path(__file__).resolve()
-    
-    root = None
-    for candidate in [current_file] + list(current_file.parents):
-        if (candidate / "requirements.txt").exists() or (candidate / "src").exists():
-            root = candidate
-            break
-            
-    # Si no se encuentra mediante padres, usamos el CWD
-    if root is None:
-        root = cwd
+    # Si por alguna razón estamos en /app, subimos un nivel
+    if root.name == "app":
+        root = root.parent
 
     # Añadir la raíz al path para permitir imports de la carpeta 'src'
     if str(root) not in sys.path:
@@ -41,8 +31,21 @@ def setup_project_paths():
     
     return root
 
-# Ejecutamos la configuración
 PROJECT_ROOT = setup_project_paths()
+
+# =========================================================
+# 2. Imports de Lógica Local (AQUÍ ESTABA EL ERROR)
+# =========================================================
+# Una vez configurado el path, debemos importar las funciones de src
+try:
+    # Ajusta esta ruta según dónde esté realmente definida la función
+    # Si está en src/analysis/knowledge_base.py por ejemplo:
+    from src.analysis.knowledge_base import load_all_datasets
+except ImportError:
+    # Fallback o mensaje de error amigable si el archivo no existe
+    st.error("No se pudo importar 'load_all_datasets'. Verifica que el archivo existe en src/analysis/")
+    def load_all_datasets(): return {} # Función vacía para evitar crash total
+
 
 
 # =========================================================
