@@ -13,10 +13,6 @@ def find_project_root(start: Path) -> Path:
 
 
 def find_presentation_files(project_root: Path):
-    """
-    Busca la presentación en rutas del proyecto y también en /mnt/data
-    para facilitar pruebas locales y ejecución en entornos temporales.
-    """
     pdf_candidates = [
         project_root / "outputs" / "reports" / "commercial_analytics_executive_presentation_vfinal.pdf",
         project_root / "commercial_analytics_executive_presentation_vfinal.pdf",
@@ -140,16 +136,6 @@ st.markdown(
             color: {TP_COLORS["gray_text"]};
             line-height: 1.6;
         }}
-
-        .fallback-box {{
-            background: #FFFDF5;
-            border: 1px solid #F0E3A3;
-            border-radius: 14px;
-            padding: 0.95rem 1rem;
-            color: {TP_COLORS["gray_dark"]};
-            line-height: 1.6;
-            margin-top: 0.8rem;
-        }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -162,8 +148,7 @@ st.markdown(
         <div class="title">Resumen visual del proyecto</div>
         <div class="subtitle">Versión descargable en PPTX y PDF</div>
         <div class="note">
-            Esta sección reúne la presentación ejecutiva del reto con una narrativa breve de Q1 a Q7.
-            Se entrega en formato PowerPoint y PDF para facilitar revisión, descarga y exposición.
+            Esta sección reúne la presentación ejecutiva del reto en formato PowerPoint y PDF.
         </div>
     </div>
     """,
@@ -196,15 +181,11 @@ with col2:
     else:
         st.button("PPTX no disponible", disabled=True, width="stretch")
 
-status_lines = []
-status_lines.append(f"PDF: {'✅ encontrado' if pdf_path else '⚠️ no encontrado'}")
-status_lines.append(f"PPTX: {'✅ encontrado' if pptx_path else '⚠️ no encontrado'}")
-status_lines.append(f"Vista previa: {'✅ encontrada' if preview_path else '⚠️ no encontrada'}")
-
-if pdf_path:
-    status_lines.append(f"Ruta PDF: `{pdf_path}`")
-if pptx_path:
-    status_lines.append(f"Ruta PPTX: `{pptx_path}`")
+status_lines = [
+    f"PDF: {'✅ encontrado' if pdf_path else '⚠️ no encontrado'}",
+    f"PPTX: {'✅ encontrado' if pptx_path else '⚠️ no encontrado'}",
+    f"Vista previa: {'✅ encontrada' if preview_path else '⚠️ no encontrada'}",
+]
 
 st.markdown(
     "<div class='status-card'>" + "<br>".join(status_lines) + "</div>",
@@ -228,8 +209,7 @@ with tab1:
                 height="920"
                 style="border:none; border-radius:12px; background:white;">
                 <div style="padding: 1rem; font-family: Arial, sans-serif; color: #1F2937;">
-                    El visor embebido no pudo renderizar el PDF en este navegador.
-                    Usa los botones de descarga o revisa la pestaña de vista previa.
+                    No se pudo renderizar el PDF.
                 </div>
             </object>
             """,
@@ -237,38 +217,11 @@ with tab1:
             scrolling=False,
         )
         st.markdown("</div>", unsafe_allow_html=True)
-
-        st.markdown(
-            """
-            <div class="fallback-box">
-                <strong>Nota:</strong> algunos navegadores, especialmente Chrome, pueden bloquear
-                el render inline de PDFs codificados en base64. Si el visor no aparece correctamente,
-                usa la pestaña <strong>Vista previa</strong> o descarga el archivo.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
     else:
-        st.warning(
-            "No se encontró el PDF de la presentación. "
-            "Ubícalo en `outputs/reports/` o conserva el archivo en `/mnt/data` durante la prueba."
-        )
+        st.warning("No se encontró el PDF.")
 
 with tab2:
     if preview_path and preview_path.exists():
-        st.image(str(preview_path), width="stretch")
+        st.image(preview_path.read_bytes(), width="stretch")
     else:
-        st.info(
-            "No se encontró imagen de vista previa. "
-        )
-
-# with st.expander("Notas de uso"):
-#     st.markdown(
-#         "- El PDF se intenta mostrar embebido con un visor más tolerante que el `iframe`.\n"
-#         "- El PPTX se mantiene como versión editable para exposición o ajustes finales.\n"
-#         "- Para uso estable en tu repo, guarda ambos archivos en `outputs/reports/`.\n"
-#         "- Si Chrome bloquea el render inline, la alternativa recomendada es usar la pestaña de vista previa o descargar el archivo.\n"
-#         "- Nombres esperados:\n"
-#         "  - `commercial_analytics_executive_presentation_vfinal.pdf`\n"
-#         "  - `commercial_analytics_executive_presentation_vfinal.pptx`"
-#     )
+        st.info("No se encontró imagen de vista previa.")
