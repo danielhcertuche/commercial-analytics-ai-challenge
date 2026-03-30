@@ -1062,7 +1062,7 @@ st.markdown(
     """
     <div class="hero-card">
         <div class="hero-badge">DEMO EJECUTIVA · Q1–Q5</div>
-        <div class="hero-title">Hallazgos clave para la decisión comercial</div>
+        <div class="hero-title">Hallazgos </div>
         <div class="hero-subtitle">Síntesis ejecutiva de ventas, experiencia del cliente, segmentación y expansión</div>
         <p class="hero-note">
             Esta página resume, en un solo recorrido, los principales resultados del análisis:
