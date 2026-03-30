@@ -49,6 +49,9 @@ try:
         build_prompt_ready_knowledge_base,
     )
     
+
+    from src.analysis.site_selection import *
+
     # 3. Prompts
     from src.prompts.system_prompts import (
         SYSTEM_PROMPTS,
