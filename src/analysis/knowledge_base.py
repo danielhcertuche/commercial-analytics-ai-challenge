@@ -256,3 +256,13 @@ def save_knowledge_base_json(
 ) -> None:
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(knowledge_base, f, ensure_ascii=False, indent=2)
+        
+def build_prompt_ready_knowledge_base(knowledge_base: dict[str, dict]) -> str:
+    lines = []
+    for _, item in knowledge_base.items():
+        lines.append(
+            f"- {item['product_id']} | categoría: {item['product_category']} | "
+            f"precio promedio: ${item['avg_real_price']:,.2f} | "
+            f"mensaje comercial: {item['marketing_description']}"
+        )
+    return "\n".join(lines)

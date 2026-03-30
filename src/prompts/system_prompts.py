@@ -135,3 +135,35 @@ def render_system_prompt(
     prompt = prompt.replace("[BASE_CONOCIMIENTO]", str(base_conocimiento))
 
     return prompt
+
+def render_system_prompt_structured(
+    template: str,
+    *,
+    edad,
+    genero,
+    perfil_de_cliente,
+    historial_compras,
+    base_conocimiento,
+) -> str:
+    prompt = render_system_prompt(
+        template,
+        edad=edad,
+        genero=genero,
+        perfil_de_cliente=perfil_de_cliente,
+        historial_compras=historial_compras,
+        base_conocimiento=base_conocimiento,
+    )
+
+    prompt += """
+    Formato obligatorio de salida:
+    1. Saludo breve de una línea.
+    2. Entre 2 y 4 recomendaciones.
+    3. Para cada recomendación usa:
+    - producto: <product_id>
+    - categoría: <product_category>
+    - razón: <explicación breve y personalizada>
+    4. Cierre breve.
+    No uses markdown complejo ni tablas.
+    """.strip()
+
+    return prompt
