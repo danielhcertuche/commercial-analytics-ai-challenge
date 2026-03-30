@@ -17,7 +17,8 @@ data/processed/*
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/processed/.gitkeep
-
+!data/raw/
+!data/raw/*.csv
 # Outputs
 outputs/figures/*
 outputs/tables/*
@@ -31,3 +32,4 @@ outputs/reports/*
 Thumbs.db
 .vscode/
 .idea/
+node_modules/
