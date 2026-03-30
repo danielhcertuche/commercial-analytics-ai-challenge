@@ -18,16 +18,16 @@ def find_presentation_files(project_root: Path):
     para facilitar pruebas locales y ejecución en entornos temporales.
     """
     pdf_candidates = [
-        project_root / "outputs" / "reports" / "commercial_analytics_executive_presentation.pdf",
-        project_root / "commercial_analytics_executive_presentation.pdf",
-        Path("/mnt/data/pdfout/commercial_analytics_executive_presentation.pdf"),
-        Path("/mnt/data/commercial_analytics_executive_presentation.pdf"),
+        project_root / "outputs" / "reports" / "commercial_analytics_executive_presentation_vfinal.pdf",
+        project_root / "commercial_analytics_executive_presentation_vfinal.pdf",
+        Path("/mnt/data/pdfout/commercial_analytics_executive_presentation_vfinal.pdf"),
+        Path("/mnt/data/commercial_analytics_executive_presentation_vfinal.pdf"),
     ]
 
     pptx_candidates = [
-        project_root / "outputs" / "reports" / "commercial_analytics_executive_presentation.pptx",
-        project_root / "commercial_analytics_executive_presentation.pptx",
-        Path("/mnt/data/commercial_analytics_executive_presentation.pptx"),
+        project_root / "outputs" / "reports" / "commercial_analytics_executive_presentation_vfinal.pptx",
+        project_root / "commercial_analytics_executive_presentation_vfinal.pptx",
+        Path("/mnt/data/commercial_analytics_executive_presentation_vfinal.pptx"),
     ]
 
     pdf_path = next((p for p in pdf_candidates if p.exists()), None)
