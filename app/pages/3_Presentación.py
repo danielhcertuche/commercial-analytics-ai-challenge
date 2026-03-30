@@ -14,7 +14,7 @@ def find_project_root(start: Path) -> Path:
 
 def find_presentation_files(project_root: Path):
     """
-    Busca la presentación en rutas de proyecto y también en /mnt/data
+    Busca la presentación en rutas del proyecto y también en /mnt/data
     para facilitar pruebas locales y ejecución en entornos temporales.
     """
     pdf_candidates = [
@@ -30,17 +30,25 @@ def find_presentation_files(project_root: Path):
         Path("/mnt/data/commercial_analytics_executive_presentation_vfinal.pptx"),
     ]
 
+    preview_candidates = [
+        project_root / "outputs" / "reports" / "commercial_analytics_executive_montage.png",
+        project_root / "outputs" / "reports" / "commercial_analytics_executive_presentation_preview.png",
+        project_root / "commercial_analytics_executive_montage.png",
+        Path("/mnt/data/commercial_analytics_executive_montage.png"),
+    ]
+
     pdf_path = next((p for p in pdf_candidates if p.exists()), None)
     pptx_path = next((p for p in pptx_candidates if p.exists()), None)
+    preview_path = next((p for p in preview_candidates if p.exists()), None)
 
-    return pdf_path, pptx_path
+    return pdf_path, pptx_path, preview_path
 
 
 PROJECT_ROOT = find_project_root(Path(__file__).resolve())
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-pdf_path, pptx_path = find_presentation_files(PROJECT_ROOT)
+pdf_path, pptx_path, preview_path = find_presentation_files(PROJECT_ROOT)
 
 st.set_page_config(
     page_title="Presentación ejecutiva",
@@ -120,6 +128,7 @@ st.markdown(
             border-radius: 18px;
             padding: 0.8rem;
             box-shadow: 0 6px 18px rgba(31, 41, 55, 0.05);
+            margin-top: 0.8rem;
         }}
 
         .status-card {{
@@ -130,6 +139,16 @@ st.markdown(
             margin-top: 0.8rem;
             color: {TP_COLORS["gray_text"]};
             line-height: 1.6;
+        }}
+
+        .fallback-box {{
+            background: #FFFDF5;
+            border: 1px solid #F0E3A3;
+            border-radius: 14px;
+            padding: 0.95rem 1rem;
+            color: {TP_COLORS["gray_dark"]};
+            line-height: 1.6;
+            margin-top: 0.8rem;
         }}
     </style>
     """,
@@ -180,6 +199,7 @@ with col2:
 status_lines = []
 status_lines.append(f"PDF: {'✅ encontrado' if pdf_path else '⚠️ no encontrado'}")
 status_lines.append(f"PPTX: {'✅ encontrado' if pptx_path else '⚠️ no encontrado'}")
+status_lines.append(f"Vista previa: {'✅ encontrada' if preview_path else '⚠️ no encontrada'}")
 
 if pdf_path:
     status_lines.append(f"Ruta PDF: `{pdf_path}`")
@@ -191,36 +211,64 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if pdf_path and pdf_path.exists():
-    pdf_bytes = pdf_path.read_bytes()
-    b64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
+tab1, tab2 = st.tabs(["Vista embebida", "Vista previa"])
 
-    st.markdown("<div class='embed-card'>", unsafe_allow_html=True)
-    st.components.v1.html(
-        f"""
-        <iframe
-            src="data:application/pdf;base64,{b64_pdf}"
-            width="100%"
-            height="920"
-            style="border:none; border-radius:12px; background:white;">
-        </iframe>
-        """,
-        height=940,
-        scrolling=False,
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
-else:
-    st.warning(
-        "No se encontró el PDF de la presentación. "
-        "Ubícalo en `outputs/reports/` o conserva el archivo en `/mnt/data` durante la prueba."
-    )
+with tab1:
+    if pdf_path and pdf_path.exists():
+        pdf_bytes = pdf_path.read_bytes()
+        b64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
+
+        st.markdown("<div class='embed-card'>", unsafe_allow_html=True)
+        st.components.v1.html(
+            f"""
+            <object
+                data="data:application/pdf;base64,{b64_pdf}"
+                type="application/pdf"
+                width="100%"
+                height="920"
+                style="border:none; border-radius:12px; background:white;">
+                <div style="padding: 1rem; font-family: Arial, sans-serif; color: #1F2937;">
+                    El visor embebido no pudo renderizar el PDF en este navegador.
+                    Usa los botones de descarga o revisa la pestaña de vista previa.
+                </div>
+            </object>
+            """,
+            height=940,
+            scrolling=False,
+        )
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown(
+            """
+            <div class="fallback-box">
+                <strong>Nota:</strong> algunos navegadores, especialmente Chrome, pueden bloquear
+                el render inline de PDFs codificados en base64. Si el visor no aparece correctamente,
+                usa la pestaña <strong>Vista previa</strong> o descarga el archivo.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.warning(
+            "No se encontró el PDF de la presentación. "
+            "Ubícalo en `outputs/reports/` o conserva el archivo en `/mnt/data` durante la prueba."
+        )
+
+with tab2:
+    if preview_path and preview_path.exists():
+        st.image(str(preview_path), width="stretch")
+    else:
+        st.info(
+            "No se encontró imagen de vista previa. "
+        )
 
 # with st.expander("Notas de uso"):
 #     st.markdown(
-#         "- El PDF se muestra embebido para lectura directa dentro de la app.\n"
+#         "- El PDF se intenta mostrar embebido con un visor más tolerante que el `iframe`.\n"
 #         "- El PPTX se mantiene como versión editable para exposición o ajustes finales.\n"
 #         "- Para uso estable en tu repo, guarda ambos archivos en `outputs/reports/`.\n"
+#         "- Si Chrome bloquea el render inline, la alternativa recomendada es usar la pestaña de vista previa o descargar el archivo.\n"
 #         "- Nombres esperados:\n"
-#         "  - `commercial_analytics_executive_presentation.pdf`\n"
-#         "  - `commercial_analytics_executive_presentation.pptx`"
+#         "  - `commercial_analytics_executive_presentation_vfinal.pdf`\n"
+#         "  - `commercial_analytics_executive_presentation_vfinal.pptx`"
 #     )
