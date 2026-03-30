@@ -3,15 +3,25 @@ import sys
 import streamlit as st
 
 
-def find_project_root(start: Path) -> Path:
-    current = start.resolve()
-    for candidate in [current] + list(current.parents):
-        if (candidate / "src").exists() and (candidate / "data").exists():
+def find_project_root(current_path: Path) -> Path:
+    """
+    Busca la raíz del proyecto buscando 'src' o 'requirements.txt'.
+    Esto soluciona el error de 'No fue posible ubicar la raíz' en Streamlit Cloud.
+    """
+    for candidate in [current_path] + list(current_path.parents):
+        # Buscamos marcadores de la raíz del repositorio
+        if (candidate / "src").exists() or (candidate / "requirements.txt").exists():
             return candidate
-    raise RuntimeError("No fue posible ubicar la raíz del proyecto.")
+    # Fallback: El directorio de trabajo actual suele ser la raíz en el servidor
+    return Path.cwd()
 
+try:
+    # Intentamos localizar la raíz de forma dinámica
+    PROJECT_ROOT = find_project_root(Path(__file__).resolve())
+except Exception:
+    PROJECT_ROOT = Path.cwd()
 
-PROJECT_ROOT = find_project_root(Path(__file__).resolve())
+# Inyectar la raíz en el path de Python para que funcionen los imports de /src
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
