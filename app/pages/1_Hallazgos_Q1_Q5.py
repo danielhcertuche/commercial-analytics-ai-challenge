@@ -10,25 +10,32 @@ import streamlit as st
 
 
 # =========================================================
-# 1. Project root and imports
+# 1. Project root and imports (VERSIÓN FLEXIBLE)
 # =========================================================
-def find_project_root(start: Path) -> Path:
-    current = start.resolve()
-    for candidate in [current] + list(current.parents):
-        if (candidate / "src").exists() and (candidate / "data").exists():
+def find_project_root(current_path: Path) -> Path:
+    """
+    Busca la raíz del proyecto de forma flexible para evitar RuntimeError.
+    """
+    root_markers = ["src", "requirements.txt", ".gitignore", "app"]
+    for candidate in [current_path] + list(current_path.parents):
+        if any((candidate / marker).exists() for marker in root_markers):
             return candidate
-    raise RuntimeError("No fue posible ubicar la raíz del proyecto.")
-
+    return Path.cwd()
 
 PROJECT_ROOT = find_project_root(Path(__file__).resolve())
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-from src.data.loaders import load_all_datasets
-from src.analysis.site_selection import (
-    build_city_sales_summary,
-    add_city_priority_score,
-)
+# Intentar importar módulos locales con manejo de errores
+try:
+    from src.data.loaders import load_all_datasets
+    from src.analysis.site_selection import (
+        build_city_sales_summary,
+        add_city_priority_score,
+    )
+except ImportError:
+    st.error("No se pudieron cargar los módulos de 'src'. Verifica la estructura de carpetas.")
+
 
 
 # =========================================================
