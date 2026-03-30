@@ -29,6 +29,7 @@ outputs/reports/*
 !outputs/figures/.gitkeep
 !outputs/tables/.gitkeep
 !outputs/reports/.gitkeep
+!outputs/reports/*
 
 # OS / IDE
 .DS_Store
