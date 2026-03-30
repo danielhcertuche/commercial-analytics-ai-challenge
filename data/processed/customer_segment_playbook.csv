@@ -1,0 +1,8 @@
+customer_segment_enriched,business_meaning,marketing_action
+Loyal high-value,Clientes de mayor valor y buena relación activa,"Fidelización premium, bundles, exclusividad"
+Loyal,Clientes recurrentes con buena probabilidad de retención,Cross-sell y retención
+Growth potential,Clientes recientes con potencial de crecimiento,Campañas de segundo pedido
+Occasional,Clientes de compra esporádica y baja profundidad relacional,Promociones tácticas y recordación
+At risk,Clientes enfriados con alta probabilidad de abandono,Reactivación y win-back
+At risk high-value,Clientes valiosos que muestran pérdida de vínculo,Rescate prioritario con ofertas personalizadas
+Friction-sensitive,Clientes cuya experiencia muestra señales de fricción o deterioro,"Atención proactiva, compensación o journeys de recuperación"

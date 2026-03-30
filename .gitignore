@@ -20,6 +20,8 @@ data/processed/*
 !data/raw/
 !data/raw/*.csv
 !data/processed/
+!data/processed/*.csv
+
 # Outputs
 outputs/figures/*
 outputs/tables/*
